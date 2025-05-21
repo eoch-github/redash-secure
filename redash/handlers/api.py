@@ -18,6 +18,7 @@ from redash.handlers.dashboards import (
     DashboardResource,
     DashboardShareResource,
     DashboardTagsResource,
+    DashboardViewerResource,
     MyDashboardsResource,
     PublicDashboardResource,
 )
@@ -137,6 +138,11 @@ api.add_org_resource(
     PublicDashboardResource,
     "/api/dashboards/public/<token>",
     endpoint="public_dashboard",
+)
+api.add_org_resource(
+    DashboardViewerResource,
+    "/api/dashboards/<dashboard_id>/viewer",
+    endpoint="dashboard_viewer",
 )
 api.add_org_resource(
     DashboardShareResource,

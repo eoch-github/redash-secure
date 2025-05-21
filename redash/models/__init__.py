@@ -1483,8 +1483,14 @@ def init_db():
         org=default_org,
         type=Group.BUILTIN_GROUP,
     )
+    dashboard_viewer_group = Group(
+        name="dashboard_viewer",
+        permissions=Group.DASHBOARD_VIEWER_PERMISSIONS,
+        org=default_org,
+        type=Group.BUILTIN_GROUP,
+    )
 
-    db.session.add_all([default_org, admin_group, default_group])
+    db.session.add_all([default_org, admin_group, default_group, dashboard_viewer_group])
     # XXX remove after fixing User.group_ids
     db.session.commit()
-    return default_org, admin_group, default_group
+    return default_org, admin_group, default_group, dashboard_viewer_group

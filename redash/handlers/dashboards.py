@@ -292,6 +292,13 @@ class PublicDashboardResource(BaseResource):
         return public_dashboard(dashboard)
 
 
+class DashboardViewerResource(BaseResource):
+    @require_permission("list_dashboards")
+    def get(self, dashboard_id):
+        dashboard = get_object_or_404(models.Dashboard.get_by_id_and_org, dashboard_id, self.current_org)
+        return public_dashboard(dashboard)
+
+
 class DashboardShareResource(BaseResource):
     def post(self, dashboard_id):
         """

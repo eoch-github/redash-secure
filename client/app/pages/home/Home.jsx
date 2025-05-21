@@ -11,11 +11,12 @@ import PlainButton from "@/components/PlainButton";
 
 import { axios } from "@/services/axios";
 import recordEvent from "@/services/recordEvent";
-import { messages } from "@/services/auth";
+import { messages, currentUser } from "@/services/auth";
 import notification from "@/services/notification";
 import routes from "@/services/routes";
 
 import { DashboardAndQueryFavoritesList } from "./components/FavoritesList";
+import DashboardListHome from "./components/DashboardListHome";
 
 import "./Home.less";
 
@@ -89,7 +90,11 @@ export default function Home() {
           />
         </DynamicComponent>
         <DynamicComponent name="HomeExtra" />
-        <DashboardAndQueryFavoritesList />
+        {currentUser.hasPermission("list_dashboards") && !currentUser.hasPermission("view_query") ? (
+          <DashboardListHome />
+        ) : (
+          <DashboardAndQueryFavoritesList />
+        )}
         <BeaconConsent />
       </div>
     </div>

@@ -258,6 +258,7 @@ class Group(db.Model, BelongsToOrgMixin):
         "list_alerts",
         "list_data_sources",
     ]
+    DASHBOARD_VIEWER_PERMISSIONS = ["list_dashboards"]
     ADMIN_PERMISSIONS = ["admin", "super_admin"]
 
     BUILTIN_GROUP = "builtin"
