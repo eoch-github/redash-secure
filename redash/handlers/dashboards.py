@@ -188,7 +188,26 @@ class DashboardResource(BaseResource):
         dashboard = get_object_or_404(fn, dashboard_id, self.current_org)
         
         if self.current_user.is_dashboard_only_user():
-            if not self.current_user.has_access(dashboard, "view"):
+            # Check if user has access to this dashboard via data source group permissions
+            has_access = False
+            
+            # Get all widgets with queries in this dashboard
+            dashboard_widgets = models.Widget.query.filter_by(dashboard_id=dashboard.id).all()
+            for widget in dashboard_widgets:
+                if widget.visualization and widget.visualization.query_rel:
+                    query = widget.visualization.query_rel
+                    if query.data_source:
+                        # Check if user's groups have access to this data source
+                        data_source_groups = models.DataSourceGroup.query.filter(
+                            models.DataSourceGroup.data_source_id == query.data_source.id,
+                            models.DataSourceGroup.group_id.in_(self.current_user.group_ids)
+                        ).first()
+                        
+                        if data_source_groups:
+                            has_access = True
+                            break
+            
+            if not has_access:
                 abort(403, message="You don't have permission to view this dashboard.")
             response = public_dashboard(dashboard)
         else:

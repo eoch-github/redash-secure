@@ -237,7 +237,6 @@ class QueryResultResource(BaseResource):
 
         return make_response("", 200, headers)
 
-    @require_any_of_permission(("view_query", "execute_query"))
     def post(self, query_id):
         """
         Execute a saved query.
@@ -249,6 +248,12 @@ class QueryResultResource(BaseResource):
                                 any cached result, or executes if not available. Set to zero to
                                 always execute.
         """
+        # Check basic permissions - allow dashboard-only users
+        if not (self.current_user.has_permission("view_query") or 
+                self.current_user.has_permission("execute_query") or
+                self.current_user.is_dashboard_only_user()):
+            abort(403, message="You don't have permission to execute queries.")
+        
         params = request.get_json(force=True, silent=True) or {}
         parameter_values = params.get("parameters", {})
 
@@ -260,13 +265,39 @@ class QueryResultResource(BaseResource):
 
         query = get_object_or_404(models.Query.get_by_id_and_org, query_id, self.current_org)
 
+        # For dashboard-only users, check data source group access
+        if self.current_user.is_dashboard_only_user():
+            has_data_source_access = False
+            
+            if query.data_source:
+                # Check if user's groups have access to the query's data source
+                data_source_groups = models.DataSourceGroup.query.filter(
+                    models.DataSourceGroup.data_source_id == query.data_source.id,
+                    models.DataSourceGroup.group_id.in_(self.current_user.group_ids)
+                ).first()
+                
+                has_data_source_access = data_source_groups is not None
+            
+            if not has_data_source_access:
+                abort(403, message="You don't have permission to execute this query.")
+
         allow_executing_with_view_only_permissions = query.parameterized.is_safe
         if "apply_auto_limit" in params:
             should_apply_auto_limit = params.get("apply_auto_limit", False)
         else:
             should_apply_auto_limit = query.options.get("apply_auto_limit", False)
 
-        if has_access(query, self.current_user, allow_executing_with_view_only_permissions):
+        # For dashboard-only users, skip the regular access check since we already validated above
+        if self.current_user.is_dashboard_only_user():
+            return run_query(
+                query.parameterized,
+                parameter_values,
+                query.data_source,
+                query_id,
+                should_apply_auto_limit,
+                max_age,
+            )
+        elif has_access(query, self.current_user, allow_executing_with_view_only_permissions):
             return run_query(
                 query.parameterized,
                 parameter_values,
@@ -284,7 +315,6 @@ class QueryResultResource(BaseResource):
             else:
                 return error_messages["no_permission"]
 
-    @require_any_of_permission(("view_query", "execute_query"))
     def get(self, query_id=None, query_result_id=None, filetype="json"):
         """
         Retrieve query results.
@@ -301,6 +331,12 @@ class QueryResultResource(BaseResource):
         :<json number runtime: Length of execution time in seconds
         :<json string retrieved_at: Query retrieval date/time, in ISO format
         """
+        # Check basic permissions - allow dashboard-only users
+        if not (self.current_user.has_permission("view_query") or 
+                self.current_user.has_permission("execute_query") or
+                self.current_user.is_dashboard_only_user()):
+            abort(403, message="You don't have permission to view query results.")
+        
         # TODO:
         # This method handles two cases: retrieving result by id & retrieving result by query id.
         # They need to be split, as they have different logic (for example, retrieving by query id
@@ -310,25 +346,44 @@ class QueryResultResource(BaseResource):
         query_result = None
         query = None
 
+        # Load query first if query_id is provided
+        if query_id is not None:
+            query = get_object_or_404(models.Query.get_by_id_and_org, query_id, self.current_org)
+            
+            # For dashboard-only users, check data source group access
+            if self.current_user.is_dashboard_only_user():
+                has_data_source_access = False
+                
+                if query.data_source:
+                    # Check if user's groups have access to the query's data source
+                    data_source_groups = models.DataSourceGroup.query.filter(
+                        models.DataSourceGroup.data_source_id == query.data_source.id,
+                        models.DataSourceGroup.group_id.in_(self.current_user.group_ids)
+                    ).first()
+                    
+                    has_data_source_access = data_source_groups is not None
+                
+                if not has_data_source_access:
+                    abort(403, message="You don't have permission to view this query result.")
+
         if query_result_id:
             query_result = get_object_or_404(models.QueryResult.get_by_id_and_org, query_result_id, self.current_org)
 
-        if query_id is not None:
-            query = get_object_or_404(models.Query.get_by_id_and_org, query_id, self.current_org)
+        if query is not None and query_result is None and query.latest_query_data_id is not None:
+            query_result = get_object_or_404(
+                models.QueryResult.get_by_id_and_org,
+                query.latest_query_data_id,
+                self.current_org,
+            )
 
-            if query_result is None and query is not None and query.latest_query_data_id is not None:
-                query_result = get_object_or_404(
-                    models.QueryResult.get_by_id_and_org,
-                    query.latest_query_data_id,
-                    self.current_org,
-                )
-
-            if query is not None and query_result is not None and self.current_user.is_api_user():
-                if query.query_hash != query_result.query_hash:
-                    abort(404, message="No cached result found for this query.")
+        if query is not None and query_result is not None and self.current_user.is_api_user():
+            if query.query_hash != query_result.query_hash:
+                abort(404, message="No cached result found for this query.")
 
         if query_result:
-            require_access(query_result.data_source, self.current_user, view_only)
+            # For non-dashboard-only users, check data source access
+            if not self.current_user.is_dashboard_only_user():
+                require_access(query_result.data_source, self.current_user, view_only)
 
             if isinstance(self.current_user, models.ApiUser):
                 event = {

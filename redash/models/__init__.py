@@ -1119,24 +1119,19 @@ class Dashboard(ChangeTrackingMixin, TimestampMixin, BelongsToOrgMixin, db.Model
 
     @classmethod
     def all_for_dashboard_only_user(cls, org, user):
-        from .users import AccessPermission
-        
-        permitted_dashboard_ids = (
-            db.session.query(AccessPermission.object_id)
-            .filter(
-                AccessPermission.object_type == "dashboards",
-                AccessPermission.access_type == "view",
-                AccessPermission.grantee_id == user.id
-            )
-        )
-        
+        """Return dashboards accessible to dashboard-only users based on data source group permissions."""
         query = (
             Dashboard.query.options(joinedload(Dashboard.user).load_only("id", "name", "details", "email"))
+            .distinct(cls.lowercase_name, Dashboard.created_at, Dashboard.slug)
+            .outerjoin(Widget)
+            .outerjoin(Visualization)
+            .outerjoin(Query)
+            .outerjoin(DataSourceGroup, Query.data_source_id == DataSourceGroup.data_source_id)
             .filter(
                 Dashboard.is_archived.is_(False),
+                Dashboard.is_draft.is_(False),
                 Dashboard.org == org,
-                Dashboard.id.in_(permitted_dashboard_ids),
-                Dashboard.is_draft.is_(False)
+                DataSourceGroup.group_id.in_(user.group_ids)
             )
         )
         
