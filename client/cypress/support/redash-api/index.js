@@ -170,3 +170,10 @@ Cypress.Commands.add("addDestinationSubscription", (alertId, destinationName) =>
 Cypress.Commands.add("updateOrgSettings", (settings) => {
   return post({ url: "api/settings/organization", body: settings }).then(({ body }) => body);
 });
+
+Cypress.Commands.add("createDataSource", (name, type, options = {}) => {
+  return post({
+    url: "api/data_sources",
+    body: { name, type, options },
+  }).then(({ body }) => body);
+});

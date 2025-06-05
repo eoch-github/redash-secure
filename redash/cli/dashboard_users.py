@@ -1,12 +1,14 @@
 import click
+from flask.cli import AppGroup
 from redash import models
-from redash.cli import manager
+
+manager = AppGroup(help="Dashboard-only users management commands.")
 
 
 @manager.command()
 @click.argument("org_slug")
 @click.argument("group_name")
-def create_dashboard_only_group(ctx, org_slug, group_name):
+def create_dashboard_only_group(org_slug, group_name):
     """Create a dashboard-only group for an organization."""
     try:
         org = models.Organization.get_by_slug(org_slug)
@@ -43,7 +45,7 @@ def create_dashboard_only_group(ctx, org_slug, group_name):
 @click.argument("org_slug")
 @click.argument("user_email")
 @click.argument("group_name")
-def add_user_to_dashboard_only_group(ctx, org_slug, user_email, group_name):
+def add_user_to_dashboard_only_group(org_slug, user_email, group_name):
     """Add a user to a dashboard-only group."""
     try:
         org = models.Organization.get_by_slug(org_slug)
@@ -82,7 +84,7 @@ def add_user_to_dashboard_only_group(ctx, org_slug, user_email, group_name):
 @click.argument("org_slug")
 @click.argument("user_email")
 @click.argument("dashboard_id")
-def grant_dashboard_permission(ctx, org_slug, user_email, dashboard_id):
+def grant_dashboard_permission(org_slug, user_email, dashboard_id):
     """Grant dashboard view permission to a dashboard-only user."""
     try:
         org = models.Organization.get_by_slug(org_slug)

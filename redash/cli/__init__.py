@@ -7,6 +7,7 @@ from rq import Connection
 
 from redash import __version__, create_app, rq_redis_connection, settings
 from redash.cli import (
+    dashboard_users,
     data_sources,
     database,
     groups,
@@ -43,6 +44,7 @@ manager.add_command(organization.manager, "org")
 manager.add_command(queries.manager, "queries")
 manager.add_command(rq.manager, "rq")
 manager.add_command(run_command, "runserver")
+manager.add_command(dashboard_users.manager, "dashboard-users")
 
 
 @manager.command()
