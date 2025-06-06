@@ -10,8 +10,7 @@ class GroupListResource(BaseResource):
     @require_admin
     def post(self):
         name = request.json["name"]
-        is_view_only = request.json.get("is_view_only", False)
-        group = models.Group(name=name, org=self.current_org, is_view_only=is_view_only)
+        group = models.Group(name=name, org=self.current_org)
         models.db.session.add(group)
         models.db.session.commit()
 
@@ -39,8 +38,6 @@ class GroupResource(BaseResource):
             abort(400, message="Can't modify built-in groups.")
 
         group.name = request.json["name"]
-        if "is_view_only" in request.json:
-            group.is_view_only = request.json["is_view_only"]
         models.db.session.commit()
 
         self.record_event({"action": "edit", "object_id": group.id, "object_type": "group"})
