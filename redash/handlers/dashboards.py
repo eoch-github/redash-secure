@@ -178,6 +178,14 @@ class DashboardResource(BaseResource):
             fn = models.Dashboard.get_by_id_and_org
 
         dashboard = get_object_or_404(fn, dashboard_id, self.current_org)
+        
+        # Check if user has access to this specific dashboard based on view-only restrictions
+        accessible_dashboards = list(models.Dashboard.all(self.current_org, self.current_user.group_ids, self.current_user.id))
+        accessible_dashboard_ids = [d.id for d in accessible_dashboards]
+        
+        if dashboard.id not in accessible_dashboard_ids:
+            abort(403, message="You don't have permission to access this dashboard.")
+        
         response = DashboardSerializer(dashboard, with_widgets=True, user=self.current_user).serialize()
 
         api_key = models.ApiKey.get_by_object(dashboard)
@@ -359,6 +367,7 @@ class DashboardTagsResource(BaseResource):
 
 
 class DashboardFavoriteListResource(BaseResource):
+    @require_permission("list_dashboards")
     def get(self):
         search_term = request.args.get("q")
 
