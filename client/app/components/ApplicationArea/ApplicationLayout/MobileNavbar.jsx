@@ -30,7 +30,7 @@ export default function MobileNavbar({ getPopupContainer }) {
           getPopupContainer={getPopupContainer} // so the overlay menu stays with the fixed header when page scrolls
           overlay={
             <Menu mode="vertical" theme="dark" selectable={false} className="mobile-navbar-menu">
-              {currentUser.hasPermission("list_dashboards") && (
+              {currentUser.hasPermission("list_dashboards") && !isViewOnly && (
                 <Menu.Item key="dashboards">
                   <Link href="dashboards">Dashboards</Link>
                 </Menu.Item>

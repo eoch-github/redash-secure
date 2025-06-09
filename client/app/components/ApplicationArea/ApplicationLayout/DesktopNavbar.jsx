@@ -72,6 +72,11 @@ export default function DesktopNavbar() {
   const canCreateAlert = currentUser.canCreateAlert();
   const isViewOnly = currentUser.isViewOnly();
 
+  // Hide entire sidebar for view-only users
+  if (isViewOnly) {
+    return null;
+  }
+
   return (
     <nav className="desktop-navbar">
       <NavbarSection className="desktop-navbar-logo">
