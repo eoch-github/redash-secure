@@ -14,6 +14,7 @@ import "./MobileNavbar.less";
 
 export default function MobileNavbar({ getPopupContainer }) {
   const firstSettingsTab = first(settingsMenu.getAvailableItems());
+  const isViewOnly = currentUser.isViewOnly();
 
   return (
     <div className="mobile-navbar">
@@ -34,12 +35,12 @@ export default function MobileNavbar({ getPopupContainer }) {
                   <Link href="dashboards">Dashboards</Link>
                 </Menu.Item>
               )}
-              {currentUser.hasPermission("view_query") && (
+              {currentUser.hasPermission("view_query") && !isViewOnly && (
                 <Menu.Item key="queries">
                   <Link href="queries">Queries</Link>
                 </Menu.Item>
               )}
-              {currentUser.canCreateAlert() && (
+              {currentUser.canCreateAlert() && !isViewOnly && (
                 <Menu.Item key="alerts">
                   <Link href="alerts">Alerts</Link>
                 </Menu.Item>
@@ -48,7 +49,7 @@ export default function MobileNavbar({ getPopupContainer }) {
                 <Link href="users/me">Edit Profile</Link>
               </Menu.Item>
               <Menu.Divider />
-              {firstSettingsTab && (
+              {firstSettingsTab && !isViewOnly && (
                 <Menu.Item key="settings">
                   <Link href={firstSettingsTab.path}>Settings</Link>
                 </Menu.Item>

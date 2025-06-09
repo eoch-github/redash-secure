@@ -21,6 +21,7 @@ import useRenameQuery from "../hooks/useRenameQuery";
 import useDuplicateQuery from "../hooks/useDuplicateQuery";
 import useApiKeyDialog from "../hooks/useApiKeyDialog";
 import usePermissionsEditorDialog from "../hooks/usePermissionsEditorDialog";
+import { currentUser } from "@/services/auth";
 
 import "./QueryPageHeader.less";
 
@@ -81,6 +82,7 @@ export default function QueryPageHeader({
   const [isDuplicating, duplicateQuery] = useDuplicateQuery(query);
   const openApiKeyDialog = useApiKeyDialog(query, onChange);
   const openPermissionsEditorDialog = usePermissionsEditorDialog(query);
+  const isViewOnly = currentUser.isViewOnly();
 
   const moreActionsMenu = useMemo(
     () =>
@@ -177,7 +179,7 @@ export default function QueryPageHeader({
           </Button>
         )}
 
-        {!queryFlags.isNew && queryFlags.canViewSource && (
+        {!queryFlags.isNew && queryFlags.canViewSource && !isViewOnly && (
           <span>
             {!sourceMode && (
               <Link.Button className="m-r-5" href={query.getUrl(true, selectedVisualization)}>

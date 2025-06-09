@@ -70,6 +70,7 @@ export default function DesktopNavbar() {
   const canCreateQuery = currentUser.hasPermission("create_query");
   const canCreateDashboard = currentUser.hasPermission("create_dashboard");
   const canCreateAlert = currentUser.canCreateAlert();
+  const isViewOnly = currentUser.isViewOnly();
 
   return (
     <nav className="desktop-navbar">
@@ -90,7 +91,7 @@ export default function DesktopNavbar() {
             </Link>
           </Menu.Item>
         )}
-        {currentUser.hasPermission("view_query") && (
+        {currentUser.hasPermission("view_query") && !isViewOnly && (
           <Menu.Item key="queries" className={activeState.queries ? "navbar-active-item" : null}>
             <Link href="queries">
               <CodeOutlinedIcon aria-label="Queries navigation button" />
@@ -98,7 +99,7 @@ export default function DesktopNavbar() {
             </Link>
           </Menu.Item>
         )}
-        {currentUser.hasPermission("list_alerts") && (
+        {currentUser.hasPermission("list_alerts") && !isViewOnly && (
           <Menu.Item key="alerts" className={activeState.alerts ? "navbar-active-item" : null}>
             <Link href="alerts">
               <AlertOutlinedIcon aria-label="Alerts navigation button" />
@@ -109,7 +110,7 @@ export default function DesktopNavbar() {
       </NavbarSection>
 
       <NavbarSection className="desktop-navbar-spacer">
-        {(canCreateQuery || canCreateDashboard || canCreateAlert) && (
+        {(canCreateQuery || canCreateDashboard || canCreateAlert) && !isViewOnly && (
           <Menu.SubMenu
             key="create"
             popupClassName="desktop-navbar-submenu"
@@ -153,7 +154,7 @@ export default function DesktopNavbar() {
             <span className="desktop-navbar-label">Help</span>
           </HelpTrigger>
         </Menu.Item>
-        {firstSettingsTab && (
+        {firstSettingsTab && !isViewOnly && (
           <Menu.Item key="settings" className={activeState.dataSources ? "navbar-active-item" : null}>
             <Link href={firstSettingsTab.path} data-test="SettingsLink">
               <SettingOutlinedIcon />

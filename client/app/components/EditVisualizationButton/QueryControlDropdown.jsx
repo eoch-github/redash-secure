@@ -15,6 +15,13 @@ import EllipsisOutlinedIcon from "@ant-design/icons/EllipsisOutlined";
 import QueryResultsLink from "./QueryResultsLink";
 
 export default function QueryControlDropdown(props) {
+  const isViewOnly = currentUser.isViewOnly();
+  
+  // Don't show the dropdown at all for view-only users
+  if (isViewOnly) {
+    return null;
+  }
+  
   const menu = (
     <Menu>
       {!props.query.isNew() && (!props.query.is_draft || !props.query.is_archived) && (
