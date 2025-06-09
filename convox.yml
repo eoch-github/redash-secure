@@ -1,8 +1,3 @@
-environment:
-resources:
-  redash-redis:
-    type: redis
-
 services:
   server:
     image: ghcr.io/eoch-github/redash-secure:latest
@@ -50,4 +45,3 @@ services:
       - QUEUES=queries
       - REDASH_DATABASE_URL
       - WORKERS_COUNT=2
-
