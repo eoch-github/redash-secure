@@ -8,10 +8,11 @@ import EmptyState, { EmptyStateHelpMessage } from "@/components/empty-state/Empt
 import DynamicComponent from "@/components/DynamicComponent";
 import BeaconConsent from "@/components/BeaconConsent";
 import PlainButton from "@/components/PlainButton";
+import navigateTo from "@/components/ApplicationArea/navigateTo";
 
 import { axios } from "@/services/axios";
 import recordEvent from "@/services/recordEvent";
-import { messages } from "@/services/auth";
+import { messages, currentUser } from "@/services/auth";
 import notification from "@/services/notification";
 import routes from "@/services/routes";
 
@@ -69,8 +70,19 @@ function EmailNotVerifiedAlert() {
 
 export default function Home() {
   useEffect(() => {
+    // Redirect view-only users to dashboards
+    if (currentUser.isViewOnly()) {
+      navigateTo("dashboards", true);
+      return;
+    }
+    
     recordEvent("view", "page", "personal_homepage");
   }, []);
+
+  // Don't render anything while redirecting view-only users
+  if (currentUser.isViewOnly()) {
+    return null;
+  }
 
   return (
     <div className="home-page">
