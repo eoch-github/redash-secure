@@ -178,11 +178,17 @@ class UserResetPasswordResource(BaseResource):
 
 class UserRegenerateApiKeyResource(BaseResource):
     def post(self, user_id):
-        user = models.User.get_by_id_and_org(user_id, self.current_org)
-        if user.is_disabled:
-            abort(404, message="Not found")
+        # Check authorization first to prevent user enumeration
         if not is_admin_or_owner(user_id):
-            abort(403)
+            abort(403, message="Insufficient permissions")
+        
+        try:
+            user = models.User.get_by_id_and_org(user_id, self.current_org)
+        except NoResultFound:
+            abort(403, message="Insufficient permissions")  # Same message to prevent enumeration
+            
+        if user.is_disabled:
+            abort(403, message="Insufficient permissions")  # Same message to prevent enumeration
 
         user.regenerate_api_key()
         models.db.session.commit()

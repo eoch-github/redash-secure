@@ -16,6 +16,7 @@ import AlertOutlinedIcon from "@ant-design/icons/AlertOutlined";
 import PlusOutlinedIcon from "@ant-design/icons/PlusOutlined";
 import QuestionCircleOutlinedIcon from "@ant-design/icons/QuestionCircleOutlined";
 import SettingOutlinedIcon from "@ant-design/icons/SettingOutlined";
+import LogoutOutlinedIcon from "@ant-design/icons/LogoutOutlined";
 import VersionInfo from "./VersionInfo";
 
 import "./DesktopNavbar.less";
@@ -69,7 +70,56 @@ export default function DesktopNavbar() {
 
   const canCreateQuery = currentUser.hasPermission("create_query");
   const canCreateDashboard = currentUser.hasPermission("create_dashboard");
-  const canCreateAlert = currentUser.hasPermission("list_alerts");
+  const canCreateAlert = currentUser.canCreateAlert();
+  const isViewOnly = currentUser.isViewOnly();
+
+  // Show minimal navbar for view-only users (just logo and profile menu for logout)
+  if (isViewOnly) {
+    return (
+      <nav className="desktop-navbar">
+        <NavbarSection className="desktop-navbar-logo">
+          <div role="menuitem">
+            <Link href="./">
+              <img src={logoUrl} alt="Redash" />
+            </Link>
+          </div>
+        </NavbarSection>
+
+        <NavbarSection className="desktop-navbar-spacer" />
+
+        <NavbarSection className="desktop-navbar-profile-menu">
+          <Menu.SubMenu
+            key="profile"
+            popupClassName="desktop-navbar-submenu"
+            tabIndex={0}
+            title={
+              <span data-test="ProfileDropdown" className="desktop-navbar-profile-menu-title">
+                <img className="profile__image_thumb" src={currentUser.profile_image_url} alt={currentUser.name} />
+              </span>
+            }>
+            <Menu.Item key="profile">
+              <Link href="users/me">Profile</Link>
+            </Menu.Item>
+            {currentUser.hasPermission("super_admin") && (
+              <Menu.Item key="status">
+                <Link href="admin/status">System Status</Link>
+              </Menu.Item>
+            )}
+            <Menu.Divider />
+            <Menu.Item key="logout">
+              <PlainButton data-test="LogOutButton" onClick={() => Auth.logout()}>
+                Log out
+              </PlainButton>
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Item key="version" role="presentation" disabled className="version-info">
+              <VersionInfo />
+            </Menu.Item>
+          </Menu.SubMenu>
+        </NavbarSection>
+      </nav>
+    );
+  }
 
   return (
     <nav className="desktop-navbar">
@@ -90,7 +140,7 @@ export default function DesktopNavbar() {
             </Link>
           </Menu.Item>
         )}
-        {currentUser.hasPermission("view_query") && (
+        {currentUser.hasPermission("view_query") && !isViewOnly && (
           <Menu.Item key="queries" className={activeState.queries ? "navbar-active-item" : null}>
             <Link href="queries">
               <CodeOutlinedIcon aria-label="Queries navigation button" />
@@ -98,7 +148,7 @@ export default function DesktopNavbar() {
             </Link>
           </Menu.Item>
         )}
-        {currentUser.hasPermission("list_alerts") && (
+        {currentUser.hasPermission("list_alerts") && !isViewOnly && (
           <Menu.Item key="alerts" className={activeState.alerts ? "navbar-active-item" : null}>
             <Link href="alerts">
               <AlertOutlinedIcon aria-label="Alerts navigation button" />
@@ -109,7 +159,7 @@ export default function DesktopNavbar() {
       </NavbarSection>
 
       <NavbarSection className="desktop-navbar-spacer">
-        {(canCreateQuery || canCreateDashboard || canCreateAlert) && (
+        {(canCreateQuery || canCreateDashboard || canCreateAlert) && !isViewOnly && (
           <Menu.SubMenu
             key="create"
             popupClassName="desktop-navbar-submenu"
@@ -153,7 +203,7 @@ export default function DesktopNavbar() {
             <span className="desktop-navbar-label">Help</span>
           </HelpTrigger>
         </Menu.Item>
-        {firstSettingsTab && (
+        {firstSettingsTab && !isViewOnly && (
           <Menu.Item key="settings" className={activeState.dataSources ? "navbar-active-item" : null}>
             <Link href={firstSettingsTab.path} data-test="SettingsLink">
               <SettingOutlinedIcon />

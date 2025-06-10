@@ -316,12 +316,14 @@ def session(org_slug=None):
     if current_user.is_api_user():
         user = {"permissions": [], "apiKey": current_user.id}
     else:
+        # Get full group objects with is_view_only property
+        groups = models.Group.query.filter(models.Group.id.in_(current_user.group_ids)).all()
         user = {
             "profile_image_url": current_user.profile_image_url,
             "id": current_user.id,
             "name": current_user.name,
             "email": current_user.email,
-            "groups": current_user.group_ids,
+            "groups": [g.to_dict() for g in groups],
             "permissions": current_user.permissions,
         }
 

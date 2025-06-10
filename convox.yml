@@ -1,0 +1,47 @@
+services:
+  server:
+    image: ghcr.io/eoch-github/redash-secure:latest
+    command: server
+    port: 5000
+    domain: redash.eochgroup.com
+    scale:
+      memory: 6144
+    tls:
+      redirect: false
+    environment:
+      - REDASH_WEB_WORKERS=5
+      - REDASH_DATABASE_URL
+    lifecycle:
+      preStop: "sleep 10"
+      postStart: "sleep 10"
+  scheduler:
+    command: scheduler
+    image: ghcr.io/eoch-github/redash-secure:latest
+    scale:
+      memory: 2048
+    tls:
+      redirect: false
+    environment:
+      - REDASH_DATABASE_URL
+  scheduled-worker:
+    image: ghcr.io/eoch-github/redash-secure:latest
+    command: worker
+    scale:
+      memory: 6144
+    tls:
+      redirect: false
+    environment:
+      - QUEUES=scheduled_queries,schemas,periodic,emails,default
+      - REDASH_DATABASE_URL
+      - WORKERS_COUNT=2
+  adhoc-worker:
+    image: ghcr.io/eoch-github/redash-secure:latest
+    command: worker
+    scale:
+      memory: 6144
+    tls:
+      redirect: false
+    environment:
+      - QUEUES=queries
+      - REDASH_DATABASE_URL
+      - WORKERS_COUNT=2
