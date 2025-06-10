@@ -8,7 +8,6 @@ import EmptyState, { EmptyStateHelpMessage } from "@/components/empty-state/Empt
 import DynamicComponent from "@/components/DynamicComponent";
 import BeaconConsent from "@/components/BeaconConsent";
 import PlainButton from "@/components/PlainButton";
-import navigateTo from "@/components/ApplicationArea/navigateTo";
 
 import { axios } from "@/services/axios";
 import recordEvent from "@/services/recordEvent";
@@ -72,7 +71,7 @@ export default function Home() {
   useEffect(() => {
     // Redirect view-only users to dashboards
     if (currentUser.isViewOnly()) {
-      navigateTo("dashboards", true);
+      window.location.href = "/dashboards";
       return;
     }
     
