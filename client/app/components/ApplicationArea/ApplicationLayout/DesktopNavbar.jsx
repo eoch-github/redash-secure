@@ -73,9 +73,52 @@ export default function DesktopNavbar() {
   const canCreateAlert = currentUser.canCreateAlert();
   const isViewOnly = currentUser.isViewOnly();
 
-  // Hide entire sidebar for view-only users
+  // Show minimal navbar for view-only users (just logo and profile menu for logout)
   if (isViewOnly) {
-    return null;
+    return (
+      <nav className="desktop-navbar">
+        <NavbarSection className="desktop-navbar-logo">
+          <div role="menuitem">
+            <Link href="./">
+              <img src={logoUrl} alt="Redash" />
+            </Link>
+          </div>
+        </NavbarSection>
+
+        <NavbarSection className="desktop-navbar-spacer" />
+
+        <NavbarSection className="desktop-navbar-profile-menu">
+          <Menu.SubMenu
+            key="profile"
+            popupClassName="desktop-navbar-submenu"
+            tabIndex={0}
+            title={
+              <span data-test="ProfileDropdown" className="desktop-navbar-profile-menu-title">
+                <img className="profile__image_thumb" src={currentUser.profile_image_url} alt={currentUser.name} />
+              </span>
+            }>
+            <Menu.Item key="profile">
+              <Link href="users/me">Profile</Link>
+            </Menu.Item>
+            {currentUser.hasPermission("super_admin") && (
+              <Menu.Item key="status">
+                <Link href="admin/status">System Status</Link>
+              </Menu.Item>
+            )}
+            <Menu.Divider />
+            <Menu.Item key="logout">
+              <PlainButton data-test="LogOutButton" onClick={() => Auth.logout()}>
+                Log out
+              </PlainButton>
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Item key="version" role="presentation" disabled className="version-info">
+              <VersionInfo />
+            </Menu.Item>
+          </Menu.SubMenu>
+        </NavbarSection>
+      </nav>
+    );
   }
 
   return (
