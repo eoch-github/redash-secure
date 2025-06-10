@@ -211,11 +211,6 @@ export default function DesktopNavbar() {
             </Link>
           </Menu.Item>
         )}
-        <Menu.Item key="logout-standalone" onClick={() => Auth.logout()}>
-          <PlainButton data-test="LogOutButtonStandalone">
-            <span className="desktop-navbar-label">Log out</span>
-          </PlainButton>
-        </Menu.Item>
       </NavbarSection>
 
       <NavbarSection className="desktop-navbar-profile-menu">
