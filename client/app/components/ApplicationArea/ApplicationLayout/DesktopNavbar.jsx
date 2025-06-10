@@ -16,6 +16,7 @@ import AlertOutlinedIcon from "@ant-design/icons/AlertOutlined";
 import PlusOutlinedIcon from "@ant-design/icons/PlusOutlined";
 import QuestionCircleOutlinedIcon from "@ant-design/icons/QuestionCircleOutlined";
 import SettingOutlinedIcon from "@ant-design/icons/SettingOutlined";
+import LogoutOutlinedIcon from "@ant-design/icons/LogoutOutlined";
 import VersionInfo from "./VersionInfo";
 
 import "./DesktopNavbar.less";
@@ -167,6 +168,11 @@ export default function DesktopNavbar() {
             </Link>
           </Menu.Item>
         )}
+        <Menu.Item key="logout-standalone" onClick={() => Auth.logout()}>
+          <PlainButton data-test="LogOutButtonStandalone">
+            <span className="desktop-navbar-label">Log out</span>
+          </PlainButton>
+        </Menu.Item>
       </NavbarSection>
 
       <NavbarSection className="desktop-navbar-profile-menu">
