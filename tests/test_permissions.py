@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 from redash import models
-from redash.permissions import has_access
+from redash.permissions import has_access, can_view_all_queries
 from tests import BaseTestCase
 
 MockUser = namedtuple("MockUser", ["permissions", "group_ids"])
@@ -64,3 +64,41 @@ class TestHasAccess(BaseTestCase):
         user = models.ApiUser(api_key, None, [])
 
         self.assertTrue(has_access(query, user, view_only))
+
+
+class TestCanViewAllQueries(BaseTestCase):
+    def test_can_view_all_queries_with_regular_user(self):
+        """Test that regular users can view all queries when not in view-only groups"""
+        user = self.factory.create_user()
+        
+        # This should work - regular user not in view-only groups
+        result = can_view_all_queries(user)
+        self.assertTrue(result)
+    
+    def test_can_view_all_queries_with_view_only_group(self):
+        """Test that users in view-only groups cannot view all queries"""
+        # Create a view-only group
+        view_only_group = self.factory.create_group(name="view_only_group", is_view_only=True)
+        models.db.session.add(view_only_group)
+        models.db.session.commit()
+        
+        # Create user and add to view-only group
+        user = self.factory.create_user(group_ids=[view_only_group.id])
+        
+        # This should fail - user is in view-only group
+        result = can_view_all_queries(user)
+        self.assertFalse(result)
+    
+    def test_can_view_all_queries_with_mixed_groups(self):
+        """Test that users with both regular and view-only groups cannot view all queries"""
+        # Create a view-only group
+        view_only_group = self.factory.create_group(name="view_only_group", is_view_only=True)
+        models.db.session.add(view_only_group)
+        models.db.session.commit()
+        
+        # Create user with both default group and view-only group
+        user = self.factory.create_user(group_ids=[self.factory.default_group.id, view_only_group.id])
+        
+        # This should fail - user has at least one view-only group
+        result = can_view_all_queries(user)
+        self.assertFalse(result)

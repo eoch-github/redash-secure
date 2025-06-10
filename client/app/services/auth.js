@@ -35,13 +35,10 @@ export const currentUser = {
 
   isViewOnly() {
     // Check if user is in any view-only group
-    console.log('isViewOnly check - groups:', this.groups);
     if (!this.groups) return false;
     const result = this.groups.some(group => {
-      console.log('Checking group:', group, 'is_view_only:', group.is_view_only);
       return group.is_view_only === true;
     });
-    console.log('isViewOnly result:', result);
     return result;
   },
 

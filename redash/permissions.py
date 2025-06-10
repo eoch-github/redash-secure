@@ -130,12 +130,12 @@ def can_view_query_source(user):
     from redash.models import Group
     user_groups = Group.query.filter(Group.id.in_(user.group_ids)).all()
     
-    # If user is in any non-view-only group, they can view source
+    # If user is in any view-only group, they cannot view source
     for group in user_groups:
-        if not group.is_view_only:
-            return True
+        if group.is_view_only:
+            return False
     
-    return False
+    return True
 
 
 def can_download_results(user):
@@ -150,12 +150,12 @@ def can_download_results(user):
     from redash.models import Group
     user_groups = Group.query.filter(Group.id.in_(user.group_ids)).all()
     
-    # If user is in any non-view-only group, they can download
+    # If user is in any view-only group, they cannot download
     for group in user_groups:
-        if not group.is_view_only:
-            return True
+        if group.is_view_only:
+            return False
     
-    return False
+    return True
 
 
 def can_create_alert(user):
@@ -170,16 +170,23 @@ def can_create_alert(user):
     from redash.models import Group
     user_groups = Group.query.filter(Group.id.in_(user.group_ids)).all()
     
-    # If user is in any non-view-only group, they can create alerts
+    # If user is in any view-only group, they cannot create alerts
     for group in user_groups:
-        if not group.is_view_only:
-            return True
+        if group.is_view_only:
+            return False
     
-    return False
+    return True
 
 
 def can_view_all_queries(user):
     """Check if user can view all queries (not restricted by data source)"""
-    # For now, this follows the same logic as other permissions
-    # In the future, we might want to restrict view-only users to specific data sources
-    return not all(group.is_view_only for group in user.groups) if hasattr(user, 'groups') else True
+    # Get all groups for the user
+    from redash.models import Group
+    user_groups = Group.query.filter(Group.id.in_(user.group_ids)).all()
+    
+    # If user is in any view-only group, they cannot view all queries
+    for group in user_groups:
+        if group.is_view_only:
+            return False
+    
+    return True

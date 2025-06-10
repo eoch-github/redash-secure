@@ -78,9 +78,9 @@ class TestViewOnlyPermissions(BaseTestCase):
         self.assertFalse(can_view_query_source(self.view_only_user))
     
     def test_can_view_query_source_for_mixed_user(self):
-        """Users in both regular and view-only groups can view query source (regular takes precedence)"""
+        """Users in both regular and view-only groups cannot view query source (view-only takes precedence)"""
         from redash.permissions import can_view_query_source
-        self.assertTrue(can_view_query_source(self.mixed_user))
+        self.assertFalse(can_view_query_source(self.mixed_user))
     
     def test_can_download_results_for_regular_user(self):
         """Regular users can download results"""
@@ -92,6 +92,11 @@ class TestViewOnlyPermissions(BaseTestCase):
         from redash.permissions import can_download_results
         self.assertFalse(can_download_results(self.view_only_user))
     
+    def test_cannot_download_results_for_mixed_user(self):
+        """Users in both regular and view-only groups cannot download results (view-only takes precedence)"""
+        from redash.permissions import can_download_results
+        self.assertFalse(can_download_results(self.mixed_user))
+    
     def test_can_create_alert_for_regular_user(self):
         """Regular users can create alerts"""
         from redash.permissions import can_create_alert
@@ -101,6 +106,11 @@ class TestViewOnlyPermissions(BaseTestCase):
         """View-only users cannot create alerts"""
         from redash.permissions import can_create_alert
         self.assertFalse(can_create_alert(self.view_only_user))
+    
+    def test_cannot_create_alert_for_mixed_user(self):
+        """Users in both regular and view-only groups cannot create alerts (view-only takes precedence)"""
+        from redash.permissions import can_create_alert
+        self.assertFalse(can_create_alert(self.mixed_user))
 
 
 class TestViewOnlyAPIEndpoints(BaseTestCase):
